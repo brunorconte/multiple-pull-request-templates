@@ -1,0 +1,26 @@
+name: Check Branch Up-to-Date with master
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+      - 'hotfix/*'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Check if branch is up-to-date with master
+        run: |
+          BASE=$(git merge-base HEAD origin/master)
+          if [ "$BASE" != "$(git rev-parse origin/master)" ]; then
+            echo "Branch is not up-to-date with master. Please rebase."
+            exit 1
+          fi
