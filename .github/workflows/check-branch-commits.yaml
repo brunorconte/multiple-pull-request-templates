@@ -1,4 +1,4 @@
-name: Check Branch Up-to-Date with master
+name: Delete Non-Compliant Branches
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - 'hotfix/*'
 
 jobs:
-  check:
+  delete-non-compliant-branch:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,9 +18,19 @@ jobs:
         run: git fetch --all
 
       - name: Check if branch is up-to-date with master
+        id: check
         run: |
           BASE=$(git merge-base HEAD origin/master)
           if [ "$BASE" != "$(git rev-parse origin/master)" ]; then
-            echo "Branch is not up-to-date with master. Please rebase."
-            exit 1
+            echo "Branch is not up-to-date with master. Deleting branch."
+            echo "::set-output name=delete::true"
+          else
+            echo "::set-output name=delete::false"
           fi
+
+      - name: Delete branch
+        if: steps.check.outputs.delete == 'true'
+        run: |
+          branch_name=$(git rev-parse --abbrev-ref HEAD)
+          echo "Deleting branch $branch_name..."
+          git push origin --delete $branch_name
