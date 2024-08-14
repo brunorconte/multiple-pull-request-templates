@@ -19,12 +19,14 @@ jobs:
       - name: Fetch the master branch
         run: git fetch origin master
 
-      - name: Check if branch is up-to-date with master
+      - name: Check if branch is identical to master
         id: check
         run: |
-          BASE=$(git merge-base HEAD origin/master)
-          if [ "$BASE" != "$(git rev-parse origin/master)" ]; then
-            echo "Branch is not up-to-date with master. Deleting branch."
+          current_branch=$(git rev-parse HEAD)
+          master_branch=$(git rev-parse origin/master)
+          
+          if [ "$current_branch" != "$master_branch" ]; then
+            echo "Branch is not identical to master. Deleting branch."
             echo "::set-output name=delete::true"
           else
             echo "::set-output name=delete::false"
